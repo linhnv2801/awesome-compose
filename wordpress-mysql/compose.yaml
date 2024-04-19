@@ -6,28 +6,47 @@ services:
     #image: mysql:8.0.27
     command: '--default-authentication-plugin=mysql_native_password'
     volumes:
-      - db_data:/var/lib/mysql
-    restart: always
+      - ./db_data:/var/lib/mysql
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=somewordpress
       - MYSQL_DATABASE=wordpress
       - MYSQL_USER=wordpress
       - MYSQL_PASSWORD=wordpress
+
     expose:
       - 3306
       - 33060
+
+    networks:
+      network:
+        ipv4_address: '${NETWORK_PREFIX}.2'
   wordpress:
     image: wordpress:latest
     ports:
-      - 80:80
-    restart: always
+      - 82:80
+    restart: unless-stopped 
     environment:
       - WORDPRESS_DB_HOST=db
       - WORDPRESS_DB_USER=wordpress
       - WORDPRESS_DB_PASSWORD=wordpress
       - WORDPRESS_DB_NAME=wordpress
+
+    networks:
+      network:
+        ipv4_address: '${NETWORK_PREFIX}.3'
 volumes:
   db_data:
 
   
+
+# networking for the Redis container
+networks:
+    network:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                -   subnet:  ${NETWORK_PREFIX}.0/24
+                    gateway: ${NETWORK_PREFIX}.1
     
